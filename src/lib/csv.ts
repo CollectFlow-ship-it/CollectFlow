@@ -44,8 +44,10 @@ const ALIASES = {
     "clientemail", "customeremail",
   ],
   invoice_number: [
-    "numero", "numerofacture", "nfacture", "numfacture", "facture", "invoice",
-    "invoicenumber", "invoiceno", "ref", "reference", "referencefacture",
+    "numero", "numerofacture", "numerodefacture", "numerodelafacture",
+    "nfacture", "nodefacture", "ndefacture", "numfacture", "facture",
+    "invoice", "invoicenumber", "invoiceno", "ref", "reference",
+    "referencefacture", "piece", "numpiece", "numerodepiece",
   ],
   amount: [
     "montant", "montantttc", "ttc", "total", "totalttc", "amount", "soldedu",
@@ -287,13 +289,46 @@ export function buildRows(rawText: string): ParseResult {
 
   const headers = records[0].map(normHeader);
   const idx = {} as Record<keyof typeof ALIASES, number>;
-  const missing: string[] = [];
-  (Object.keys(ALIASES) as (keyof typeof ALIASES)[]).forEach((key) => {
+  const keys = Object.keys(ALIASES) as (keyof typeof ALIASES)[];
+  const used = new Set<number>();
+
+  // Passe 1 : nom de colonne exact (aux accents et à la ponctuation près).
+  keys.forEach((key) => {
     const aliases: readonly string[] = ALIASES[key];
     const i = headers.findIndex((h) => aliases.includes(h));
     idx[key] = i;
-    if (i === -1) missing.push(LABELS[key]);
+    if (i !== -1) used.add(i);
   });
+
+  // Passe 2 : pour les colonnes encore introuvables, on accepte un en-tête
+  // qui contient un mot-clé (« Montant TTC restant dû », « Date d'échéance »…).
+  // L'aperçu montre ensuite ce qui a été lu, donc une erreur se voit.
+  const FUZZY: Record<keyof typeof ALIASES, { has: string[]; not: string[] }> = {
+    client_email: { has: ["email", "mail", "courriel"], not: [] },
+    invoice_number: {
+      has: ["numero", "numfacture", "facture", "invoice", "reference", "piece"],
+      not: ["client", "date", "montant", "total", "solde", "echeance", "email", "mail"],
+    },
+    amount: { has: ["montant", "amount", "total", "solde"], not: ["date", "numero"] },
+    due_date: { has: ["echeance", "duedate"], not: [] },
+    client_name: { has: ["client", "nom", "societe", "customer"], not: ["email", "mail", "numero", "date", "montant"] },
+  };
+  (["client_email", "invoice_number", "amount", "due_date", "client_name"] as const).forEach(
+    (key) => {
+      if (idx[key] !== -1) return;
+      const { has, not } = FUZZY[key];
+      const i = headers.findIndex(
+        (h, n) =>
+          !used.has(n) &&
+          has.some((w) => h.includes(w)) &&
+          !not.some((w) => h.includes(w)),
+      );
+      idx[key] = i;
+      if (i !== -1) used.add(i);
+    },
+  );
+
+  const missing = keys.filter((k) => idx[k] === -1).map((k) => LABELS[k]);
 
   if (missing.length > 0) {
     const found = records[0].map((h) => h.trim()).filter(Boolean).join(", ");
