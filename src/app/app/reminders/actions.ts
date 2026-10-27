@@ -45,15 +45,16 @@ async function loadContext(): Promise<Ctx | null> {
   if (!company) return null;
 
   const supabase = createClient();
-  const { data: cs } = await supabase
-    .from("companies")
-    .select("penalty_rate, fixed_fee_cents, payment_instructions, reply_to_email")
-    .eq("id", company.id)
-    .maybeSingle();
-  const { data: steps } = await supabase
-    .from("reminder_steps")
-    .select(STEP_COLUMNS)
-    .eq("company_id", company.id);
+  const [csRes, stepsRes] = await Promise.all([
+    supabase
+      .from("companies")
+      .select("penalty_rate, fixed_fee_cents, payment_instructions, reply_to_email")
+      .eq("id", company.id)
+      .maybeSingle(),
+    supabase.from("reminder_steps").select(STEP_COLUMNS).eq("company_id", company.id),
+  ]);
+  const cs = csRes.data;
+  const steps = stepsRes.data;
 
   if (!cs || !steps) return null;
 
