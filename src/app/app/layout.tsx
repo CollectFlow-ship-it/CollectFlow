@@ -30,6 +30,9 @@ export default async function AppLayout({
               <Link href="/app/invoices" className="hover:text-brand">
                 Factures
               </Link>
+              <Link href="/app/scenarios" className="hover:text-brand">
+                Scénarios
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4 text-sm">

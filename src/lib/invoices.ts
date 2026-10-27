@@ -34,6 +34,12 @@ function dayNumber(iso: string): number {
   return Math.round(Date.UTC(y, m - 1, d) / 86_400_000);
 }
 
+// Ajoute (ou retire, si négatif) des jours à une date aaaa-mm-jj.
+export function addDays(iso: string, n: number): string {
+  const d = new Date((dayNumber(iso) + n) * 86_400_000);
+  return d.toISOString().slice(0, 10);
+}
+
 // Positif = jours de retard, négatif = jours avant l'échéance.
 export function daysLate(dueIso: string, todayIso: string): number {
   return dayNumber(todayIso) - dayNumber(dueIso);

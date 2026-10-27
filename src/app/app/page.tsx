@@ -123,9 +123,11 @@ export default async function AppHome({
           </span>
           Importer vos factures impayées (fichier CSV)
         </li>
-        <li className="flex items-center gap-3 rounded-lg border border-line bg-white px-4 py-3 text-muted">
-          <span className="font-semibold">Bientôt</span>
-          Choisir votre scénario de relance
+        <li className="flex items-center gap-3 rounded-lg border border-line bg-white px-4 py-3">
+          <span className="font-semibold text-brand">À faire</span>
+          <Link href="/app/scenarios" className="font-semibold underline">
+            Relire et adapter votre scénario de relance
+          </Link>
         </li>
         <li className="flex items-center gap-3 rounded-lg border border-line bg-white px-4 py-3 text-muted">
           <span className="font-semibold">Bientôt</span>

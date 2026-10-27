@@ -71,3 +71,25 @@ Après chaque dépôt de code sur GitHub, Vercel redéploie le site tout seul en
 7. Faites un test d'erreur : mettez une date « 31/02/2026 » ou un e-mail sans @ dans une ligne, l'aperçu doit la signaler avec son numéro de ligne.
 
 Utilisez de fausses adresses e-mail pour ces tests : rien n'est envoyé à ce stade.
+
+---
+
+# Mise à jour : étape 3 (scénarios de relance)
+
+## 1. Ajouter les tables (Supabase)
+
+1. Supabase, **SQL Editor**, **New query**.
+2. Copiez le contenu de `supabase/migrations/0003_reminder_steps.sql` (dossier `supabase`, puis `migrations` sur GitHub), collez-le et cliquez sur **Run**. Résultat attendu : « Success. No rows returned ».
+3. Ne rejouez pas `0001` ni `0002`.
+
+## 2. Tester (après le redéploiement Vercel, 1 à 2 minutes)
+
+1. Le menu en haut affiche maintenant **Scénarios**. À la première visite, 4 étapes sont créées : J+3 amical, J+10 formel, J+20 ferme, J+35 mise en demeure.
+2. Dans **Réglages**, saisissez le taux de pénalités et l'indemnité de vos conditions de vente, ainsi que vos instructions de paiement (IBAN…), puis **Enregistrer les réglages**.
+3. Ouvrez une étape, modifiez le message : l'aperçu à droite change en direct. Si vous avez importé des factures en retard, l'aperçu utilise la plus en retard.
+4. Cliquez sur une variable (par exemple `{montant}`) : elle s'insère à l'endroit du curseur.
+5. Tapez volontairement une variable fausse (`{nom_clent}`) : un message d'erreur apparaît et le bouton d'enregistrement se bloque.
+6. **Enregistrer l'étape**, rechargez la page : vos changements sont conservés.
+7. Ajoutez une étape à J+15, puis supprimez-la. Essayez d'en ajouter une deuxième au même jour : un message l'interdit.
+
+Rien n'est envoyé à ce stade. Les modèles sont indicatifs : faites relire la mise en demeure par votre conseil avant tout envoi réel.
