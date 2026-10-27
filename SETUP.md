@@ -47,3 +47,27 @@ Sans cela, le lien de confirmation reçu par e-mail ne ramène pas au site.
 - L'envoi d'e-mails par défaut de Supabase est limité et prévu pour les tests. Avant d'accueillir de vrais clients, on branchera Resend comme expéditeur.
 - L'offre gratuite de Vercel est destinée à un usage non commercial. Avant de vendre le service, vérifiez leurs conditions : un abonnement payant sera probablement nécessaire.
 - Ne partagez jamais vos clés secrètes dans un message ou un fichier du dépôt.
+
+---
+
+# Mise à jour : étape 2 (factures)
+
+Après chaque dépôt de code sur GitHub, Vercel redéploie le site tout seul en 1 à 2 minutes (onglet **Deployments** pour suivre).
+
+## 1. Ajouter la table des factures (Supabase)
+
+1. Supabase, **SQL Editor**, **New query**.
+2. Ouvrez `supabase/migrations/0002_invoices.sql` dans GitHub, copiez tout son contenu, collez-le et cliquez sur **Run**. Résultat attendu : « Success. No rows returned ».
+3. Ne rejouez pas `0001_init.sql` : il est déjà appliqué.
+
+## 2. Tester
+
+1. Connectez-vous au site : le menu en haut affiche maintenant **Accueil** et **Factures**.
+2. **Factures**, puis **Importer un fichier CSV**, puis **Télécharger un modèle**.
+3. Ouvrez le modèle, remplacez les lignes par quelques factures de test (échéances passées ou futures), enregistrez en CSV et déposez-le : un aperçu apparaît avant l'enregistrement.
+4. Cliquez sur **Importer** : la liste s'affiche avec les retards en couleur.
+5. Essayez **Mettre en pause**, **Marquer payée**, puis **Remettre en impayée** et **Supprimer**.
+6. Réimportez le même fichier : le message indique que les numéros déjà connus sont ignorés.
+7. Faites un test d'erreur : mettez une date « 31/02/2026 » ou un e-mail sans @ dans une ligne, l'aperçu doit la signaler avec son numéro de ligne.
+
+Utilisez de fausses adresses e-mail pour ces tests : rien n'est envoyé à ce stade.

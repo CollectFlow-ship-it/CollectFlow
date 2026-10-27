@@ -1,30 +1,15 @@
-import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getCompany } from "@/lib/company";
+import { daysLate, formatEur, todayParis } from "@/lib/invoices";
 import { createCompany } from "./actions";
-
-type Company = { id: string; name: string };
 
 export default async function AppHome({
   searchParams,
 }: {
   searchParams: { error?: string };
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  const { data } = await supabase
-    .from("memberships")
-    .select("role, companies(id, name)")
-    .eq("user_id", user.id)
-    .limit(1);
-
-  const row = (data as { companies: Company | Company[] | null }[] | null)?.[0];
-  const related = row?.companies;
-  const company = Array.isArray(related) ? related[0] : related;
+  const company = await getCompany();
 
   if (!company) {
     return (
@@ -66,20 +51,76 @@ export default async function AppHome({
     );
   }
 
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("invoices")
+    .select("amount_cents, due_date")
+    .eq("company_id", company.id)
+    .eq("status", "unpaid")
+    .limit(1000);
+
+  const today = todayParis();
+  const unpaid = (data ?? []) as { amount_cents: number | string; due_date: string }[];
+  const total = unpaid.reduce((s, i) => s + Number(i.amount_cents), 0);
+  const overdue = unpaid.filter((i) => daysLate(i.due_date, today) > 0);
+  const overdueTotal = overdue.reduce((s, i) => s + Number(i.amount_cents), 0);
+
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-extrabold tracking-tight">{company.name}</h1>
-        <p className="text-muted">Votre espace est prêt. Voici les prochaines étapes du produit.</p>
+        <p className="text-muted">Où en sont vos encaissements.</p>
       </div>
+
+      {unpaid.length === 0 ? (
+        <div className="flex max-w-xl flex-col gap-3 rounded-lg border border-line bg-white p-5">
+          <p className="font-semibold">Importez vos factures impayées pour commencer.</p>
+          <p className="text-sm text-muted">
+            Un fichier CSV exporté de votre logiciel suffit. Vous vérifiez un
+            aperçu avant l&apos;enregistrement.
+          </p>
+          <div>
+            <Link
+              href="/app/invoices/import"
+              className="inline-block rounded-lg bg-brand px-4 py-2.5 font-semibold text-white hover:bg-brand-dark"
+            >
+              Importer un fichier CSV
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-line bg-white p-4">
+            <p className="text-sm font-semibold text-muted">Total impayé</p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums">{formatEur(total)}</p>
+            <p className="text-sm text-muted">{unpaid.length} facture{unpaid.length > 1 ? "s" : ""}</p>
+          </div>
+          <div className="rounded-lg border border-line bg-white p-4">
+            <p className="text-sm font-semibold text-muted">Dont en retard</p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums text-bad">
+              {formatEur(overdueTotal)}
+            </p>
+            <p className="text-sm text-muted">{overdue.length} facture{overdue.length > 1 ? "s" : ""}</p>
+          </div>
+          <Link
+            href="/app/invoices"
+            className="flex flex-col justify-between rounded-lg border border-line bg-white p-4 hover:bg-brand-soft"
+          >
+            <p className="text-sm font-semibold text-muted">Suivi</p>
+            <p className="mt-1 font-semibold text-brand">Voir les factures →</p>
+          </Link>
+        </div>
+      )}
 
       <ol className="flex max-w-xl flex-col gap-2 text-sm">
         <li className="flex items-center gap-3 rounded-lg border border-line bg-white px-4 py-3">
           <span className="font-semibold text-good">Fait</span>
           Compte et entreprise créés
         </li>
-        <li className="flex items-center gap-3 rounded-lg border border-line bg-white px-4 py-3 text-muted">
-          <span className="font-semibold">Bientôt</span>
+        <li className="flex items-center gap-3 rounded-lg border border-line bg-white px-4 py-3">
+          <span className={"font-semibold " + (unpaid.length > 0 ? "text-good" : "text-brand")}>
+            {unpaid.length > 0 ? "Fait" : "À faire"}
+          </span>
           Importer vos factures impayées (fichier CSV)
         </li>
         <li className="flex items-center gap-3 rounded-lg border border-line bg-white px-4 py-3 text-muted">
