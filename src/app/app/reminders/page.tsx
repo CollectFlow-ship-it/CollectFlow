@@ -19,6 +19,7 @@ import {
   sendTest,
   skipReminder,
 } from "./actions";
+import ActionForm from "./action-form";
 
 // Un envoi groupé de 10 e-mails prend une dizaine de secondes.
 export const maxDuration = 60;
@@ -59,6 +60,7 @@ export default async function RemindersPage({
     skipped?: string;
     manual?: string;
     test?: string;
+    to?: string;
   };
 }) {
   const company = await getCompany();
@@ -162,8 +164,13 @@ export default async function RemindersPage({
       )}
 
       {Number.isFinite(sentN) && searchParams.sent !== undefined && sentN > 0 && (
-        <p role="status" className="rounded-lg bg-green-50 px-3 py-2 text-sm text-good">
-          {sentN} relance{sentN > 1 ? "s" : ""} envoyée{sentN > 1 ? "s" : ""}.
+        <p
+          role="status"
+          className="sticky top-2 z-10 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-semibold text-good shadow-sm"
+        >
+          ✓ {sentN} relance{sentN > 1 ? "s" : ""} envoyée{sentN > 1 ? "s" : ""}
+          {searchParams.to ? ` à ${searchParams.to}` : ""}. Elle ne sera pas renvoyée : vérifiez le
+          journal en bas de page.
           {Number.isFinite(failedN) && failedN > 0 ? ` ${failedN} en échec (voir le journal).` : ""}
         </p>
       )}
@@ -178,26 +185,31 @@ export default async function RemindersPage({
         </p>
       )}
       {searchParams.test && (
-        <p role="status" className="rounded-lg bg-green-50 px-3 py-2 text-sm text-good">
-          E-mail de test envoyé à {searchParams.test}. Vérifiez aussi vos courriers indésirables.
+        <p
+          role="status"
+          className="sticky top-2 z-10 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-semibold text-good shadow-sm"
+        >
+          ✓ E-mail de test envoyé à {searchParams.test}. Il peut mettre une minute à arriver :
+          vérifiez aussi vos courriers indésirables avant d&apos;en redemander un.
         </p>
       )}
       {searchParams.error && (
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-bad">
+        <p
+          role="alert"
+          className="sticky top-2 z-10 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-bad shadow-sm"
+        >
           {searchParams.error}
         </p>
       )}
 
       <div className="flex flex-wrap items-start gap-3">
-        <form action={sendTest}>
-          <button
-            type="submit"
-            disabled={!ready}
-            className="rounded-lg border border-line bg-white px-4 py-2.5 font-semibold hover:bg-brand-soft disabled:opacity-50"
-          >
-            M&apos;envoyer un e-mail de test
-          </button>
-        </form>
+        <ActionForm
+          action={sendTest}
+          label="M'envoyer un e-mail de test"
+          pendingLabel="Envoi du test…"
+          disabled={!ready}
+          buttonClassName="rounded-lg border border-line bg-white px-4 py-2.5 font-semibold hover:bg-brand-soft disabled:opacity-50"
+        />
 
         {emailDue.length > 0 && (
           <details className="rounded-lg border border-line bg-white">
@@ -209,16 +221,20 @@ export default async function RemindersPage({
             >
               Envoyer les {Math.min(emailDue.length, MAX_BATCH)} premières relances
             </summary>
-            <form action={sendAll} className="flex max-w-xs flex-col gap-2 border-t border-line p-3">
+            <ActionForm
+              action={sendAll}
+              label="Oui, envoyer"
+              pendingLabel="Envoi en cours, patientez…"
+              formClassName="flex max-w-xs flex-col gap-2 border-t border-line p-3"
+              buttonClassName="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+            >
               <p className="text-sm text-muted">
                 {Math.min(emailDue.length, MAX_BATCH)} e-mail
                 {Math.min(emailDue.length, MAX_BATCH) > 1 ? "s" : ""} vont partir chez de vrais
-                clients. Avez-vous lu les messages ci-dessous ?
+                clients. Avez-vous lu les messages ci-dessous ? L&apos;envoi peut durer une dizaine de
+                secondes : ne cliquez qu&apos;une fois.
               </p>
-              <button type="submit" className="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-dark">
-                Oui, envoyer
-              </button>
-            </form>
+            </ActionForm>
           </details>
         )}
       </div>
@@ -290,33 +306,39 @@ export default async function RemindersPage({
                 </details>
 
                 <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-4 py-3">
-                  <form action={skipReminder}>
+                  <ActionForm
+                    key={`skip-${d.invoice.id}-${d.step.id}-${d.retry}`}
+                    action={skipReminder}
+                    label="Ignorer"
+                    pendingLabel="…"
+                    buttonClassName="rounded-lg border border-line px-3 py-2 text-sm font-semibold hover:bg-canvas"
+                  >
                     <input type="hidden" name="invoice_id" value={d.invoice.id} />
                     <input type="hidden" name="step_id" value={d.step.id} />
-                    <button type="submit" className="rounded-lg border border-line px-3 py-2 text-sm font-semibold hover:bg-canvas">
-                      Ignorer
-                    </button>
-                  </form>
+                  </ActionForm>
                   {formal ? (
-                    <form action={markLetterSent}>
+                    <ActionForm
+                      key={`letter-${d.invoice.id}-${d.step.id}-${d.retry}`}
+                      action={markLetterSent}
+                      label="J'ai envoyé le courrier"
+                      pendingLabel="Enregistrement…"
+                      buttonClassName="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+                    >
                       <input type="hidden" name="invoice_id" value={d.invoice.id} />
                       <input type="hidden" name="step_id" value={d.step.id} />
-                      <button type="submit" className="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-dark">
-                        J&apos;ai envoyé le courrier
-                      </button>
-                    </form>
+                    </ActionForm>
                   ) : (
-                    <form action={sendReminder}>
+                    <ActionForm
+                      key={`send-${d.invoice.id}-${d.step.id}-${d.retry}`}
+                      action={sendReminder}
+                      label={d.retry ? "Réessayer l'envoi" : "Envoyer"}
+                      pendingLabel="Envoi en cours…"
+                      disabled={!ready}
+                      buttonClassName="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
+                    >
                       <input type="hidden" name="invoice_id" value={d.invoice.id} />
                       <input type="hidden" name="step_id" value={d.step.id} />
-                      <button
-                        type="submit"
-                        disabled={!ready}
-                        className="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50"
-                      >
-                        {d.retry ? "Réessayer l'envoi" : "Envoyer"}
-                      </button>
-                    </form>
+                    </ActionForm>
                   )}
                 </footer>
               </article>

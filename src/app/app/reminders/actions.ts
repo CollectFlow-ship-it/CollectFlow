@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -244,7 +245,7 @@ export async function sendReminder(formData: FormData) {
   const result = await sendItem(ctx!, item!);
   revalidatePath("/app/reminders");
   if (!result.ok) back({ error: result.message });
-  back({ sent: "1" });
+  back({ sent: "1", to: item!.invoice.client_email });
 }
 
 export async function sendAll() {
@@ -326,6 +327,24 @@ export async function sendTest() {
 
   const blocked = precondition(ctx!);
   if (blocked) back({ error: blocked });
+
+  // Un seul test toutes les 30 secondes : plusieurs clics ne doivent pas
+  // multiplier les e-mails.
+  const jar = cookies();
+  const lastTest = Number(jar.get("cf_test_at")?.value ?? 0);
+  if (Date.now() - lastTest < 30_000) {
+    back({
+      error:
+        "Un e-mail de test vient d'être envoyé. Patientez 30 secondes (et vérifiez vos courriers indésirables) avant d'en demander un autre.",
+    });
+  }
+  jar.set("cf_test_at", String(Date.now()), {
+    maxAge: 60,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+  });
 
   const {
     data: { user },
