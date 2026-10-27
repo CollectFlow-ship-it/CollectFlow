@@ -118,7 +118,7 @@ export default function StepEditor({
             <p className="font-extrabold tabular-nums">{label}</p>
             <p className="text-xs text-muted">
               {TONES.find((t) => t.key === tone)?.label ?? tone}
-              {formal ? " · avec lettre PDF" : ""}
+              {formal ? " · courrier recommandé, pas d'e-mail" : ""}
               {enabled ? "" : " · désactivée"}
             </p>
           </div>
@@ -241,7 +241,7 @@ export default function StepEditor({
                 checked={formal}
                 onChange={(e) => setFormal(e.target.checked)}
               />
-              Joindre la lettre de mise en demeure en PDF
+              Mise en demeure : étape à envoyer par courrier recommandé (aucun e-mail ne part). Laissez décoché pour une relance par e-mail.
             </label>
           </div>
 
@@ -275,7 +275,7 @@ export default function StepEditor({
             </div>
             {formal && (
               <p className="border-t border-line bg-canvas px-3 py-2 text-xs text-muted">
-                Pièce jointe : mise-en-demeure-{sample.invoice_number}.pdf
+                Cette étape n&apos;est pas envoyée par e-mail : vous postez la lettre en recommandé.
               </p>
             )}
           </div>
