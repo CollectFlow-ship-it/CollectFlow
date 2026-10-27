@@ -93,3 +93,34 @@ Utilisez de fausses adresses e-mail pour ces tests : rien n'est envoyé à ce st
 7. Ajoutez une étape à J+15, puis supprimez-la. Essayez d'en ajouter une deuxième au même jour : un message l'interdit.
 
 Rien n'est envoyé à ce stade. Les modèles sont indicatifs : faites relire la mise en demeure par votre conseil avant tout envoi réel.
+
+---
+
+# Mise à jour : étape 4 (envoi des relances)
+
+Cette étape envoie de vrais e-mails, après validation de votre part. Faites d'abord tous les essais avec vos propres adresses.
+
+## 1. Ajouter le journal (Supabase)
+
+1. **SQL Editor**, **New query**, collez le contenu de `supabase/migrations/0004_reminders.sql`, **Run**. Résultat attendu : « Success. No rows returned ».
+2. Faites-le **avant** d'ouvrir le site après le redéploiement : la page Scénarios lit une colonne ajoutée par ce fichier.
+
+## 2. Créer le service d'envoi (Resend)
+
+1. Créez un compte sur https://resend.com.
+2. Menu **API Keys**, **Create API Key**, droit **Sending access**. Copiez la clé (elle commence par `re_` et ne s'affiche qu'une fois).
+3. **Ne collez jamais cette clé dans une conversation ni dans GitHub.** Elle va uniquement dans Vercel.
+4. Sur Vercel : votre projet, **Settings**, **Environment Variables**, ajoutez `RESEND_API_KEY` avec la clé. Puis **Deployments**, trois points sur le dernier déploiement, **Redeploy** (sans cela, la clé n'est pas prise en compte).
+
+## 3. Tester sans risque
+
+1. Sur le site, **Scénarios**, **Réglages** : renseignez votre adresse e-mail de réponse, puis enregistrez.
+2. **Relances**, bouton **M'envoyer un e-mail de test** : vous recevez un exemple à l'adresse de votre compte. Vérifiez aussi les courriers indésirables.
+3. Tant que vous n'avez pas de domaine vérifié chez Resend, l'adresse d'expédition de test de Resend ne peut écrire **qu'à l'adresse e-mail de votre compte Resend**. Pour tester une vraie relance, utilisez donc, dans votre fichier CSV, **votre propre adresse** comme e-mail du client (la même que celle de votre compte Resend).
+4. Importez cette facture de test avec une échéance dépassée de plus de 3 jours : elle apparaît dans **À valider**. Lisez le message, cliquez sur **Envoyer**, puis vérifiez le **Journal**.
+5. Cliquez une seconde fois ou rechargez : la relance ne peut pas partir deux fois.
+
+## 4. Avant de contacter de vrais clients
+
+- Il faudra un **nom de domaine** vérifié chez Resend (quelques lignes DNS à ajouter chez votre registraire), puis la variable `MAIL_FROM_ADDRESS` sur Vercel (par exemple `relances@votre-domaine.fr`). Sans cela, les e-mails ne peuvent pas partir vers vos clients.
+- La **mise en demeure** n'est pas envoyée par e-mail : CollectFlow affiche la lettre et vous la postez en recommandé avec accusé de réception, puis vous cliquez sur « J'ai envoyé le courrier ».

@@ -129,9 +129,11 @@ export default async function AppHome({
             Relire et adapter votre scénario de relance
           </Link>
         </li>
-        <li className="flex items-center gap-3 rounded-lg border border-line bg-white px-4 py-3 text-muted">
-          <span className="font-semibold">Bientôt</span>
-          Envoyer vos premières relances
+        <li className="flex items-center gap-3 rounded-lg border border-line bg-white px-4 py-3">
+          <span className="font-semibold text-brand">À faire</span>
+          <Link href="/app/reminders" className="font-semibold underline">
+            Valider et envoyer vos premières relances
+          </Link>
         </li>
       </ol>
     </section>

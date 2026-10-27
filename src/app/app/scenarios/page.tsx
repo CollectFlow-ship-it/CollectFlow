@@ -33,7 +33,7 @@ export default async function ScenariosPage({
 
   const { data: cs, error: settingsError } = await supabase
     .from("companies")
-    .select("penalty_rate, fixed_fee_cents, payment_instructions")
+    .select("penalty_rate, fixed_fee_cents, payment_instructions, reply_to_email")
     .eq("id", company.id)
     .maybeSingle();
 
@@ -61,8 +61,9 @@ export default async function ScenariosPage({
       <section className="flex max-w-xl flex-col gap-3">
         <h1 className="text-2xl font-extrabold tracking-tight">Scénarios de relance</h1>
         <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-bad">
-          Impossible de charger les scénarios. Vérifiez que la migration{" "}
-          <b>0003_reminder_steps.sql</b> a bien été exécutée dans Supabase (voir SETUP.md).
+          Impossible de charger les scénarios. Vérifiez que les migrations{" "}
+          <b>0003_reminder_steps.sql</b> et <b>0004_reminders.sql</b> ont bien été exécutées dans
+          Supabase (voir SETUP.md).
         </p>
       </section>
     );
@@ -199,6 +200,20 @@ export default async function ScenariosPage({
             />
           </label>
         </div>
+        <label className="flex flex-col gap-1 text-sm font-semibold">
+          Votre adresse e-mail de réponse
+          <input
+            name="reply_to_email"
+            type="email"
+            defaultValue={String(cs.reply_to_email ?? "")}
+            autoComplete="email"
+            placeholder="comptabilite@votre-entreprise.fr"
+            className="rounded-lg border border-line bg-white px-3 py-2 font-normal"
+          />
+          <span className="text-xs font-normal text-muted">
+            Quand un client répond à une relance, sa réponse arrive ici. Obligatoire pour envoyer.
+          </span>
+        </label>
         <label className="flex flex-col gap-1 text-sm font-semibold">
           Instructions de paiement
           <textarea

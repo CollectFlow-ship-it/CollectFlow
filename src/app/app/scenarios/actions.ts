@@ -121,6 +121,10 @@ export async function saveSettings(formData: FormData) {
   if (!Number.isFinite(feeEuros) || feeEuros < 0 || feeEuros > 1000) {
     back({ error: "L'indemnité forfaitaire doit être comprise entre 0 et 1 000 €.", settings: "1" }, "reglages");
   }
+  const replyTo = String(formData.get("reply_to_email") ?? "").trim().toLowerCase();
+  if (replyTo !== "" && (replyTo.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(replyTo))) {
+    back({ error: "L'adresse e-mail de réponse n'est pas valide.", settings: "1" }, "reglages");
+  }
   if (instructions.length > MAX_PAYMENT_INSTRUCTIONS) {
     back(
       { error: `Les instructions de paiement sont limitées à ${MAX_PAYMENT_INSTRUCTIONS} caractères.`, settings: "1" },
@@ -138,6 +142,7 @@ export async function saveSettings(formData: FormData) {
       penalty_rate: Math.round(rate * 100) / 100,
       fixed_fee_cents: Math.round(feeEuros * 100),
       payment_instructions: instructions,
+      reply_to_email: replyTo === "" ? null : replyTo,
     })
     .eq("id", company!.id)
     .select("id");
