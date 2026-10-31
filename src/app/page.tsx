@@ -107,7 +107,7 @@ export default function Home() {
         <section className="mx-auto grid max-w-6xl items-center gap-14 px-5 pb-20 pt-10 lg:grid-cols-[1.05fr_0.95fr] lg:pb-28 lg:pt-16">
           <div className="flex flex-col gap-6">
             <h1 className="font-display text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
-              Relancez vos factures impayées, sans froisser vos clients.
+              L’outil de relance des factures impayées.
             </h1>
             <p className="max-w-xl text-lg leading-relaxed text-muted">
               CollectFlow envoie des relances courtoises au bon moment, du
