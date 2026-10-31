@@ -1,5 +1,4 @@
-// Logo CollectFlow : un C et un F reliés par un seul trait, légèrement penché.
-// Le bas du C se relève pour devenir la tige du F : l'argent suit le même chemin.
+// Logo CollectFlow : un C et un F séparés, penchés, aux extrémités coupées net.
 // Le dessin est en SVG : net à toutes les tailles, aucune image à charger.
 export function LogoMark({
   size = 28,
@@ -18,15 +17,16 @@ export function LogoMark({
     >
       <rect width="32" height="32" rx="8" fill="#1E40AF" />
       <g
-        transform="translate(16 16) skewX(-9) translate(-16 -16)"
+        transform="translate(16 16) skewX(-10) translate(-16 -16)"
         fill="none"
         stroke="#FFFFFF"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeWidth="3.4"
+        strokeLinecap="butt"
+        strokeLinejoin="miter"
       >
-        <path d="M26.5 9.5H16A6.5 6.5 0 0 0 16 22.5H18.5C21 22.5 21.5 21 21.5 19V9.5" />
-        <path d="M21.5 16H26.5" />
+        <path d="M15.2 10.6A6.6 6.6 0 1 0 15.2 21.4" />
+        <path d="M20.3 8.5V23.5" />
+        <path d="M20.3 9.9H27M20.3 15.9H25.6" />
       </g>
     </svg>
   );
