@@ -34,6 +34,7 @@ function authorized(req: Request): boolean {
 
 export async function GET(req: Request) {
   if (!authorized(req)) {
+    console.log("[digest] refusé : CRON_SECRET absent, trop court ou différent de celui reçu.");
     return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
   }
   if (!emailConfigured()) {
@@ -41,6 +42,7 @@ export async function GET(req: Request) {
   }
   const admin = createAdminClient();
   if (!admin) {
+    console.log("[digest] erreur : SUPABASE_SERVICE_ROLE_KEY n'est pas définie.");
     return NextResponse.json(
       { error: "SUPABASE_SERVICE_ROLE_KEY n'est pas définie." },
       { status: 500 },
@@ -56,6 +58,7 @@ export async function GET(req: Request) {
     .or(`last_digest_on.is.null,last_digest_on.lt.${today}`)
     .limit(MAX_COMPANIES);
   if (error) {
+    console.log("[digest] erreur de lecture des entreprises : migration 0005 manquante ?");
     return NextResponse.json(
       { error: "Lecture des entreprises impossible. La migration 0005 a-t-elle été exécutée ?" },
       { status: 500 },
@@ -129,5 +132,8 @@ export async function GET(req: Request) {
     await new Promise((r) => setTimeout(r, PAUSE_BETWEEN_COMPANIES_MS));
   }
 
-  return NextResponse.json({ date: today, checked: companies?.length ?? 0, sent, skipped, failed });
+  const summary = { date: today, checked: companies?.length ?? 0, sent, skipped, failed };
+  // Visible dans Vercel, onglet Logs : permet de vérifier la tâche sans ouvrir de boîte mail.
+  console.log(`[digest] ${JSON.stringify(summary)}`);
+  return NextResponse.json(summary);
 }
