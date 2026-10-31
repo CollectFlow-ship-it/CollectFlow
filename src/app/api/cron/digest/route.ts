@@ -3,7 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { emailConfigured, sendEmail } from "@/lib/email";
 import { buildDigest } from "@/lib/digest";
-import { todayParis } from "@/lib/invoices";
+import { daysLate, todayParis } from "@/lib/invoices";
 import {
   computeDue,
   INVOICE_COLUMNS,
@@ -116,6 +116,26 @@ export async function GET(req: Request) {
         `[digest] rien à valider : ${invoices.length} facture(s) impayée(s) dont ${pending} non en pause, ` +
           `${activeSteps} étape(s) active(s), ${(recs.data ?? []).length} relance(s) au journal.`,
       );
+      // Détail par facture (numéro, retard, étape visée, état au journal) : sert à comprendre
+      // pourquoi aucune relance n'est due. Limité à 20 lignes.
+      const activeSorted = ((steps.data ?? []) as StepRow[])
+        .filter((st) => st.enabled)
+        .sort((a, b) => a.days_after_due - b.days_after_due);
+      for (const inv of invoices.slice(0, 20)) {
+        const late = daysLate(inv.due_date, today);
+        const reached = activeSorted.filter((st) => st.days_after_due <= late);
+        const target = reached[reached.length - 1];
+        const rec = target
+          ? ((recs.data ?? []) as RecordRow[]).find(
+              (r) => r.invoice_id === inv.id && r.step_id === target.id,
+            )
+          : undefined;
+        console.log(
+          `[digest] ${inv.invoice_number} : échéance ${inv.due_date}, ${late} j de retard, ` +
+            `étape visée ${target ? `J+${target.days_after_due}` : "aucune"}, ` +
+            `journal ${rec ? rec.status : "aucun"}, pause ${inv.paused ? "oui" : "non"}.`,
+        );
+      }
       skipped++;
       continue;
     }
