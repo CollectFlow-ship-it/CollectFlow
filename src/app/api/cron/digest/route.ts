@@ -100,6 +100,13 @@ export async function GET(req: Request) {
       today,
     );
     if (items.length === 0) {
+      // Seulement des compteurs, aucune donnée personnelle : sert à comprendre un « rien à valider ».
+      const activeSteps = ((steps.data ?? []) as StepRow[]).filter((st) => st.enabled).length;
+      const pending = invoices.filter((i) => !i.paused).length;
+      console.log(
+        `[digest] rien à valider : ${invoices.length} facture(s) impayée(s) dont ${pending} non en pause, ` +
+          `${activeSteps} étape(s) active(s), ${(recs.data ?? []).length} relance(s) au journal.`,
+      );
       skipped++;
       continue;
     }
