@@ -51,12 +51,19 @@ export async function GET(req: Request) {
 
   const today = todayParis();
 
-  const { data: companies, error } = await admin
+  const { data: allCompanies, error } = await admin
     .from("companies")
-    .select("id, name")
-    .eq("digest_enabled", true)
-    .or(`last_digest_on.is.null,last_digest_on.lt.${today}`)
+    .select("id, name, digest_enabled, last_digest_on")
     .limit(MAX_COMPANIES);
+  // Le tri se fait ici (et non dans la requête) pour pouvoir expliquer pourquoi
+  // une entreprise n'est pas traitée : récapitulatif désactivé ou déjà envoyé aujourd'hui.
+  const disabled = (allCompanies ?? []).filter((c) => c.digest_enabled === false).length;
+  const alreadySent = (allCompanies ?? []).filter(
+    (c) => c.digest_enabled !== false && String(c.last_digest_on ?? "") >= today,
+  ).length;
+  const companies = (allCompanies ?? []).filter(
+    (c) => c.digest_enabled !== false && String(c.last_digest_on ?? "") < today,
+  );
   if (error) {
     console.log("[digest] erreur de lecture des entreprises : migration 0005 manquante ?");
     return NextResponse.json(
@@ -69,7 +76,7 @@ export async function GET(req: Request) {
   let skipped = 0;
   let failed = 0;
 
-  for (const company of companies ?? []) {
+  for (const company of companies) {
     const id = company.id as string;
     const name = String(company.name ?? "");
 
@@ -139,7 +146,16 @@ export async function GET(req: Request) {
     await new Promise((r) => setTimeout(r, PAUSE_BETWEEN_COMPANIES_MS));
   }
 
-  const summary = { date: today, checked: companies?.length ?? 0, sent, skipped, failed };
+  const summary = {
+    date: today,
+    companies: allCompanies?.length ?? 0,
+    disabled,
+    alreadySentToday: alreadySent,
+    checked: companies.length,
+    sent,
+    skipped,
+    failed,
+  };
   // Visible dans Vercel, onglet Logs : permet de vérifier la tâche sans ouvrir de boîte mail.
   console.log(`[digest] ${JSON.stringify(summary)}`);
   return NextResponse.json(summary);
