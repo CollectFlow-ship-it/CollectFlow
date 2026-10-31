@@ -1,5 +1,6 @@
-// Logo CollectFlow : un C et un F séparés, penchés, aux extrémités coupées net.
+// Logo CollectFlow : un C et un F séparés, penchés, aux coupes parallèles, en dégradé bleu.
 // Le dessin est en SVG : net à toutes les tailles, aucune image à charger.
+// `size` est la hauteur du symbole ; la largeur suit les proportions du dessin.
 export function LogoMark({
   size = 28,
   className,
@@ -9,25 +10,34 @@ export function LogoMark({
 }) {
   return (
     <svg
-      width={size}
       height={size}
-      viewBox="0 0 32 32"
+      width={(size * 630) / 495}
+      viewBox="90 150 630 495"
       aria-hidden="true"
       className={className}
     >
-      <rect width="32" height="32" rx="8" fill="#1E40AF" />
-      <g
-        transform="translate(16 16) skewX(-10) translate(-16 -16)"
-        fill="none"
-        stroke="#FFFFFF"
-        strokeWidth="3.4"
-        strokeLinecap="butt"
-        strokeLinejoin="miter"
-      >
-        <path d="M15.2 10.6A6.6 6.6 0 1 0 15.2 21.4" />
-        <path d="M20.3 8.5V23.5" />
-        <path d="M20.3 9.9H27M20.3 15.9H25.6" />
-      </g>
+      <defs>
+        <linearGradient
+          id="cf-mark-gradient"
+          gradientUnits="userSpaceOnUse"
+          x1="150"
+          y1="150"
+          x2="560"
+          y2="645"
+        >
+          <stop offset="0" stopColor="#58A6FF" />
+          <stop offset="0.55" stopColor="#2358D8" />
+          <stop offset="1" stopColor="#14327F" />
+        </linearGradient>
+      </defs>
+      <path
+        fill="url(#cf-mark-gradient)"
+        d="M500 155H312A215 215 0 0 0 265 578L288 516A148 148 0 0 1 312 222H470Z"
+      />
+      <path
+        fill="url(#cf-mark-gradient)"
+        d="M258 642H332L394 472H580L612 408H417L446 330H675L712 265H396Z"
+      />
     </svg>
   );
 }
