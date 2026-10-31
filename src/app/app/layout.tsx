@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/auth/actions";
+import { Logo } from "@/components/logo";
 
 export default async function AppLayout({
   children,
@@ -20,8 +21,8 @@ export default async function AppLayout({
       <header className="border-b border-line bg-white">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-3">
           <div className="flex items-center gap-6">
-            <Link href="/app" className="font-extrabold tracking-tight text-brand">
-              CollectFlow
+            <Link href="/app" aria-label="CollectFlow, tableau de bord">
+              <Logo size={26} />
             </Link>
             <nav className="flex gap-4 text-sm font-semibold">
               <Link href="/app" className="hover:text-brand">

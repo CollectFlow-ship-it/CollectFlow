@@ -14,6 +14,12 @@ const config: Config = {
         bad: "#B91C1C",
       },
       fontFamily: {
+        display: [
+          "var(--font-display)",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
         sans: [
           "ui-sans-serif",
           "system-ui",

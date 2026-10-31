@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signup } from "@/app/auth/actions";
+import { Logo } from "@/components/logo";
 
 export default function SignupPage({
   searchParams,
@@ -8,11 +9,11 @@ export default function SignupPage({
 }) {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-5 py-12">
-      <div className="flex flex-col gap-1">
-        <Link href="/" className="text-sm font-semibold text-brand">
-          CollectFlow
+      <div className="flex flex-col gap-4">
+        <Link href="/" aria-label="CollectFlow, accueil">
+          <Logo />
         </Link>
-        <h1 className="text-2xl font-extrabold tracking-tight">Créer un compte</h1>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">Créer un compte</h1>
       </div>
 
       {searchParams.error && (
