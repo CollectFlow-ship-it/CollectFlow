@@ -154,6 +154,14 @@ export async function saveSettings(formData: FormData) {
     );
   }
 
+  // Interrupteur du récapitulatif : le champ n'est présent que si la migration 0005 est passée.
+  if (formData.get("digest_field") === "1") {
+    await supabase
+      .from("companies")
+      .update({ digest_enabled: formData.get("digest_enabled") === "on" })
+      .eq("id", company!.id);
+  }
+
   revalidatePath("/app/scenarios");
   back({ settings_saved: "1" }, "reglages");
 }

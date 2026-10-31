@@ -15,6 +15,7 @@ import {
 import {
   markLetterSent,
   sendAll,
+  sendDigestTest,
   sendReminder,
   sendTest,
   skipReminder,
@@ -208,6 +209,13 @@ export default async function RemindersPage({
           label="M'envoyer un e-mail de test"
           pendingLabel="Envoi du test…"
           disabled={!ready}
+          buttonClassName="rounded-lg border border-line bg-white px-4 py-2.5 font-semibold hover:bg-brand-soft disabled:opacity-50"
+        />
+        <ActionForm
+          action={sendDigestTest}
+          label="M'envoyer le récapitulatif du matin"
+          pendingLabel="Envoi du récapitulatif…"
+          disabled={!emailConfigured()}
           buttonClassName="rounded-lg border border-line bg-white px-4 py-2.5 font-semibold hover:bg-brand-soft disabled:opacity-50"
         />
 

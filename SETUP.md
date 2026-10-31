@@ -124,3 +124,34 @@ Cette étape envoie de vrais e-mails, après validation de votre part. Faites d'
 
 - Il faudra un **nom de domaine** vérifié chez Resend (quelques lignes DNS à ajouter chez votre registraire), puis la variable `MAIL_FROM_ADDRESS` sur Vercel (par exemple `relances@votre-domaine.fr`). Sans cela, les e-mails ne peuvent pas partir vers vos clients.
 - La **mise en demeure** n'est pas envoyée par e-mail : CollectFlow affiche la lettre et vous la postez en recommandé avec accusé de réception, puis vous cliquez sur « J'ai envoyé le courrier ».
+
+---
+
+# Mise à jour : étape 5 (récapitulatif quotidien)
+
+Chaque matin en semaine, CollectFlow vous envoie un e-mail « N relances à valider » avec un lien vers l'application. **Rien n'est envoyé à vos clients** : le message ne vous prévient que de ce qui attend votre validation. S'il n'y a rien à valider, aucun e-mail ne part.
+
+## 1. Ajouter les colonnes (Supabase)
+
+1. **SQL Editor**, **New query**, collez le contenu de `supabase/migrations/0005_digest.sql`, **Run**. Résultat attendu : « Success. No rows returned ».
+
+## 2. Donner à la tâche planifiée sa clé d'accès (Vercel)
+
+La tâche tourne sans que personne soit connecté : elle a donc besoin de deux valeurs secrètes. **Ne les collez jamais dans une conversation ni sur GitHub.**
+
+1. **Clé Supabase « service_role »** : Supabase, **Project Settings**, **API Keys** (ou **API**), copiez la clé **service_role** (secrète), pas la clé « anon ». Dans Vercel, **Settings**, **Environment Variables**, ajoutez `SUPABASE_SERVICE_ROLE_KEY` avec cette clé. Le nom ne doit **jamais** commencer par `NEXT_PUBLIC_`.
+2. **Mot de passe de la tâche** : inventez une longue suite de caractères au hasard (au moins 32, lettres et chiffres, générée par un gestionnaire de mots de passe de préférence). Ajoutez-la dans Vercel sous le nom `CRON_SECRET`. Vercel la présente automatiquement à la tâche ; sans elle, la route refuse toute demande.
+3. Facultatif : `APP_URL`, l'adresse du site utilisée dans les liens du message. Par défaut : `https://www.collectflow.fr`.
+4. **Deployments**, trois points sur le dernier déploiement, **Redeploy**.
+
+## 3. Tester
+
+1. Page **Relances**, bouton **M'envoyer le récapitulatif du matin** : vous recevez un exemple à l'adresse de votre compte (avec vos vraies relances dues, ou un exemple s'il n'y en a aucune). Vérifiez aussi les courriers indésirables.
+2. Pour tester la tâche elle-même : Vercel, votre projet, **Settings**, **Cron Jobs**, ligne `/api/cron/digest`, bouton **Run**. Si des relances sont à valider, l'e-mail part. Réponse attendue : `{"sent":1,…}`.
+3. **Scénarios**, **Réglages** : la case « Récapitulatif quotidien par e-mail » permet de le désactiver.
+
+## 4. À savoir
+
+- La tâche s'exécute à 7 h UTC en semaine, soit 8 h en hiver et 9 h en été (heure de Paris). Sur l'offre gratuite de Vercel, l'heure exacte peut varier d'environ une heure.
+- Un seul récapitulatif par jour et par entreprise, même si la tâche est relancée.
+- Une facture marquée payée ou mise en pause n'apparaît plus.

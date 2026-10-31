@@ -24,8 +24,11 @@ export function senderName(companyName: string): string {
 
 export async function sendEmail(input: {
   companyName: string;
+  // Nom d'expéditeur imposé (notifications envoyées par CollectFlow lui-même).
+  // Sans cela, c'est « <entreprise> via CollectFlow ».
+  fromName?: string;
   to: string;
-  replyTo: string;
+  replyTo?: string;
   subject: string;
   text: string;
   idempotencyKey: string;
@@ -45,9 +48,9 @@ export async function sendEmail(input: {
         "Idempotency-Key": input.idempotencyKey,
       },
       body: JSON.stringify({
-        from: `${senderName(input.companyName)} <${senderAddress()}>`,
+        from: `${input.fromName ?? senderName(input.companyName)} <${senderAddress()}>`,
         to: [input.to],
-        reply_to: input.replyTo,
+        ...(input.replyTo ? { reply_to: input.replyTo } : {}),
         subject: input.subject,
         text: input.text,
       }),

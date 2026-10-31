@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCompany } from "@/lib/company";
-import { todayParis, UUID_RE } from "@/lib/invoices";
+import { addDays, todayParis, UUID_RE } from "@/lib/invoices";
+import { buildDigest } from "@/lib/digest";
 import { emailConfigured, sendEmail } from "@/lib/email";
 import {
   computeDue,
@@ -387,6 +388,89 @@ export async function sendTest() {
     subject: `[TEST] ${msg.subject}`,
     text: msg.body,
     idempotencyKey: `test:${crypto.randomUUID()}`,
+  });
+
+  if (!res.ok) back({ error: res.error });
+  back({ test: user!.email as string });
+}
+
+// Envoie à l'adresse du compte un exemple du récapitulatif quotidien, construit
+// avec les relances réellement dues (ou un exemple s'il n'y en a aucune).
+export async function sendDigestTest() {
+  const ctx = await loadContext();
+  if (!ctx) back({ error: "Session expirée. Reconnectez-vous." });
+
+  if (!emailConfigured()) {
+    back({
+      error: "L'envoi d'e-mails n'est pas encore activé : ajoutez la clé Resend dans Vercel (voir SETUP.md).",
+    });
+  }
+
+  const jar = cookies();
+  const last = Number(jar.get("cf_digest_at")?.value ?? 0);
+  if (Date.now() - last < 30_000) {
+    back({
+      error:
+        "Un récapitulatif de test vient d'être envoyé. Patientez 30 secondes (et vérifiez vos courriers indésirables) avant d'en demander un autre.",
+    });
+  }
+  jar.set("cf_digest_at", String(Date.now()), {
+    maxAge: 60,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+  });
+
+  const {
+    data: { user },
+  } = await ctx!.supabase.auth.getUser();
+  if (!user?.email) back({ error: "Adresse e-mail du compte introuvable." });
+
+  const due = await loadDue(ctx!);
+  const example = due.length === 0;
+  const today = todayParis();
+  const items: DueItem[] = example
+    ? [
+        {
+          invoice: {
+            id: "exemple",
+            client_name: "Exemple SARL",
+            client_email: "",
+            invoice_number: "F-2026-0001",
+            amount_cents: 120000,
+            due_date: addDays(today, -12),
+            status: "unpaid",
+            paused: false,
+          },
+          step: ctx!.steps.find((s) => s.enabled && !s.formal_notice) ?? {
+            id: "exemple",
+            days_after_due: 10,
+            tone: "formel",
+            subject: "",
+            body: "",
+            enabled: true,
+            formal_notice: false,
+          },
+          late: 12,
+          retry: false,
+        },
+      ]
+    : due;
+
+  const { subject, text } = buildDigest({
+    companyName: ctx!.settings.company_name,
+    items,
+    example,
+  });
+
+  const res = await sendEmail({
+    companyName: ctx!.settings.company_name,
+    fromName: "CollectFlow",
+    to: user!.email as string,
+    subject: `[TEST] ${subject}`,
+    text,
+    idempotencyKey: `digest-test:${crypto.randomUUID()}`,
   });
 
   if (!res.ok) back({ error: res.error });

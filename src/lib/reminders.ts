@@ -4,6 +4,11 @@
 import { daysLate } from "./invoices";
 import { buildVars, fillTemplate } from "./templates";
 
+// Colonnes lues en base pour calculer les relances dues.
+export const INVOICE_COLUMNS =
+  "id, client_name, client_email, invoice_number, amount_cents, due_date, status, paused";
+export const STEP_COLUMNS = "id, days_after_due, tone, subject, body, enabled, formal_notice";
+
 export type StepRow = {
   id: string;
   days_after_due: number;

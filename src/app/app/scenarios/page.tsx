@@ -37,6 +37,15 @@ export default async function ScenariosPage({
     .eq("id", company.id)
     .maybeSingle();
 
+  // Lu à part : si la migration 0005 n'est pas encore passée, la page reste utilisable.
+  const { data: dg, error: dgError } = await supabase
+    .from("companies")
+    .select("digest_enabled")
+    .eq("id", company.id)
+    .maybeSingle();
+  const digestAvailable = !dgError && dg !== null;
+  const digestEnabled = digestAvailable ? dg.digest_enabled !== false : true;
+
   let stepsRes = await supabase
     .from("reminder_steps")
     .select(STEP_COLUMNS)
@@ -228,6 +237,24 @@ export default async function ScenariosPage({
             Insérées à la place de {"{instructions_paiement}"}. {MAX_PAYMENT_INSTRUCTIONS} caractères maximum.
           </span>
         </label>
+        {digestAvailable && (
+          <label className="flex items-start gap-3 rounded-lg bg-canvas px-3 py-3 text-sm">
+            <input type="hidden" name="digest_field" value="1" />
+            <input
+              type="checkbox"
+              name="digest_enabled"
+              defaultChecked={digestEnabled}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+            />
+            <span>
+              <span className="font-semibold">Récapitulatif quotidien par e-mail</span>
+              <span className="block text-muted">
+                Chaque matin en semaine, vous recevez un e-mail si des relances sont à valider.
+                Rien n&apos;est envoyé à vos clients sans votre accord.
+              </span>
+            </span>
+          </label>
+        )}
         <div>
           <button
             type="submit"
