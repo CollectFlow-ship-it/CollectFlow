@@ -92,6 +92,8 @@ export async function GET(req: Request) {
       admin.from("memberships").select("user_id").eq("company_id", id).eq("role", "owner").limit(1),
     ]);
     if (inv.error || steps.error || recs.error || owner.error) {
+      const why = inv.error ?? steps.error ?? recs.error ?? owner.error;
+      console.log(`[digest] échec de lecture des données : ${why?.message ?? "erreur inconnue"}`);
       failed++;
       continue;
     }
@@ -122,6 +124,9 @@ export async function GET(req: Request) {
     const user = userId ? await admin.auth.admin.getUserById(userId) : null;
     const to = user?.data.user?.email;
     if (!to) {
+      console.log(
+        `[digest] échec : adresse e-mail du propriétaire introuvable (${user?.error?.message ?? "aucun propriétaire"}).`,
+      );
       failed++;
       continue;
     }
@@ -138,9 +143,11 @@ export async function GET(req: Request) {
     });
 
     if (!res.ok) {
+      console.log(`[digest] échec de l'envoi : ${res.error}`);
       failed++;
       continue;
     }
+    console.log(`[digest] e-mail envoyé : ${items.length} relance(s) à valider.`);
     sent++;
     await admin.from("companies").update({ last_digest_on: today }).eq("id", id);
     await new Promise((r) => setTimeout(r, PAUSE_BETWEEN_COMPANIES_MS));
