@@ -3,17 +3,17 @@
 // s'en servent. Une valeur vide s'affiche « [à compléter] » sur le site.
 export const LEGAL = {
   // Nom et prénom de la personne qui édite le site (ou raison sociale d'une société).
-  editorName: "",
+  editorName: "Roman Ndjambou",
   // Ex. : « Entrepreneur individuel (micro-entreprise) », « SASU au capital de … € ».
   legalForm: "",
   // Adresse postale professionnelle (peut être une adresse de domiciliation).
-  address: "",
+  address: "31 rue de la Picotière, 49000 Angers",
   // Numéro SIRET (14 chiffres) : indispensable avant de facturer un client.
   siret: "",
   // Numéro de TVA intracommunautaire, ou laisser vide si non assujetti.
   vatNumber: "",
   // Adresse e-mail de contact publique.
-  contactEmail: "",
+  contactEmail: "contact@collectflow.fr",
   // Région où se trouve la base de données Supabase (ex. « Union européenne, Paris »).
   dataRegion: "",
   // Date de dernière mise à jour des textes (jj/mm/aaaa).
