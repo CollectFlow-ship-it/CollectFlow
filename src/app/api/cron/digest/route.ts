@@ -17,6 +17,8 @@ import {
 // Elle n'envoie rien aux clients : elle prévient seulement le propriétaire
 // du compte qu'il a des relances à valider.
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 export const maxDuration = 60;
 
 const MAX_COMPANIES = 200;

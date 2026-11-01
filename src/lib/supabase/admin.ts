@@ -10,5 +10,11 @@ export function createAdminClient() {
   if (!url || !key) return null;
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    // Next.js met en cache les requêtes « fetch » : sans ceci, la tâche pourrait relire
+    // d'anciennes données au lieu de l'état actuel de la base.
+    global: {
+      fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+        fetch(input, { ...init, cache: "no-store" }),
+    },
   });
 }
