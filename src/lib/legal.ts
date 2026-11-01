@@ -15,7 +15,7 @@ export const LEGAL = {
   // Adresse e-mail de contact publique.
   contactEmail: "contact@collectflow.fr",
   // Région où se trouve la base de données Supabase (ex. « Union européenne, Paris »).
-  dataRegion: "",
+  dataRegion: "Union européenne (Irlande)",
   // Date de dernière mise à jour des textes (jj/mm/aaaa).
   updatedOn: "01/11/2026",
 };
