@@ -155,3 +155,33 @@ La tâche tourne sans que personne soit connecté : elle a donc besoin de deux v
 - La tâche s'exécute à 7 h UTC en semaine, soit 8 h en hiver et 9 h en été (heure de Paris). Sur l'offre gratuite de Vercel, l'heure exacte peut varier d'environ une heure.
 - Un seul récapitulatif par jour et par entreprise, même si la tâche est relancée.
 - Une facture marquée payée ou mise en pause n'apparaît plus.
+
+---
+
+# Mise à jour : étape 6 (abonnement Stripe)
+
+L'abonnement est un prix unique par mois, avec un essai gratuit. Tout se prépare d'abord en **mode test** de Stripe : aucun vrai paiement, aucun SIRET demandé. Le mode réel demande votre statut d'entreprise.
+
+## 1. Créer la table (Supabase)
+
+**SQL Editor**, **New query**, collez `supabase/migrations/0006_billing.sql`, **Run**.
+
+## 2. Préparer Stripe (mode test)
+
+1. Créez un compte sur stripe.com. Restez en **mode test** (bandeau « Mode test » ou « Bac à sable »).
+2. **Catalogue de produits**, **Ajouter un produit** : nom « CollectFlow », tarification **récurrente**, **19 € par mois**, devise euro. Ouvrez le prix créé et copiez son identifiant (`price_…`).
+3. **Développeurs**, **Clés API** : copiez la **clé secrète** (`sk_test_…`).
+4. **Paramètres**, **Facturation**, **Portail client** : activez-le (changement de carte, factures, résiliation).
+5. **Développeurs**, **Webhooks**, **Ajouter une destination** : adresse `https://www.collectflow.fr/api/stripe/webhook`, événements `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`. Copiez le **secret de signature** (`whsec_…`).
+
+## 3. Variables dans Vercel (jamais ailleurs)
+
+`STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`. Facultatif : `STRIPE_TRIAL_DAYS` (14 par défaut). Laissez `BILLING_REQUIRED` absent pendant les tests, puis mettez `true` pour exiger l'abonnement. Puis **Redeploy**.
+
+## 4. Tester
+
+Page **Abonnement** de l'application, **Commencer l'essai gratuit**, carte de test `4242 4242 4242 4242` (date future, code au choix). Au retour, la page affiche « Essai gratuit en cours ». Si ce n'est pas le cas : Stripe, **Webhooks**, voyez si les messages ont échoué.
+
+## 5. Passer en réel
+
+Quand votre activité est déclarée : activez votre compte Stripe (SIRET, IBAN), puis refaites les points 2 à 5 en **mode réel** avec de nouvelles clés. Passez aussi le projet Vercel en offre **Pro** : l'offre gratuite interdit l'usage commercial.

@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { emailConfigured, sendEmail } from "@/lib/email";
 import { buildDigest } from "@/lib/digest";
 import { daysLate, todayParis } from "@/lib/invoices";
+import { billingRequired, statusGivesAccess } from "@/lib/billing";
 import {
   computeDue,
   INVOICE_COLUMNS,
@@ -86,10 +87,24 @@ export async function GET(req: Request) {
   let sent = 0;
   let skipped = 0;
   let failed = 0;
+  let unsubscribed = 0;
+
+  // Avec l'abonnement obligatoire, seules les entreprises abonnées (ou en essai) reçoivent le récapitulatif.
+  let accessIds: Set<string> | null = null;
+  if (billingRequired()) {
+    const { data: subs } = await admin.from("subscriptions").select("company_id, status");
+    accessIds = new Set(
+      (subs ?? []).filter((r) => statusGivesAccess(r.status as string)).map((r) => r.company_id as string),
+    );
+  }
 
   for (const company of companies) {
     const id = company.id as string;
     const name = String(company.name ?? "");
+    if (accessIds && !accessIds.has(id)) {
+      unsubscribed++;
+      continue;
+    }
 
     const [inv, steps, recs, owner] = await Promise.all([
       admin
@@ -192,6 +207,7 @@ export async function GET(req: Request) {
     checked: companies.length,
     sent,
     skipped,
+    unsubscribed,
     failed,
   };
   // Visible dans Vercel, onglet Logs : permet de vérifier la tâche sans ouvrir de boîte mail.

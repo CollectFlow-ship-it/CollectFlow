@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCompany } from "@/lib/company";
+import { hasAccess } from "@/lib/billing";
 import { addDays, todayParis, UUID_RE } from "@/lib/invoices";
 import { buildDigest } from "@/lib/digest";
 import { emailConfigured, sendEmail } from "@/lib/email";
@@ -240,6 +241,7 @@ export async function sendReminder(formData: FormData) {
 
   const blocked = precondition(ctx!);
   if (blocked) back({ error: blocked });
+  if (!(await hasAccess(ctx!.companyId))) redirect("/app/billing?need=1");
 
   const item = await findItem(ctx!, ids!.invoiceId, ids!.stepId);
   if (!item) back({ error: "Cette relance n'est plus d'actualité (facture payée, en pause ou déjà traitée)." });
@@ -256,6 +258,7 @@ export async function sendAll() {
 
   const blocked = precondition(ctx!);
   if (blocked) back({ error: blocked });
+  if (!(await hasAccess(ctx!.companyId))) redirect("/app/billing?need=1");
 
   const items = (await loadDue(ctx!)).filter((i) => !i.step.formal_notice).slice(0, MAX_BATCH);
   if (items.length === 0) back({ error: "Aucune relance à envoyer." });
