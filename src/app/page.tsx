@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { LegalFooter } from "@/components/legal-page";
 
 // Exemple de scénario affiché dans le héros : mêmes étapes que les réglages par défaut.
 const EXAMPLE_STEPS = [
@@ -314,6 +315,7 @@ export default function Home() {
           </Link>
         </div>
       </footer>
+      <LegalFooter />
     </div>
   );
 }

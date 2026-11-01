@@ -53,6 +53,12 @@ export default function SignupPage({
         </button>
       </form>
 
+      <p className="text-xs text-muted">
+        En créant un compte, vous acceptez les{" "}
+        <Link href="/conditions" className="underline">conditions d’utilisation</Link> et la{" "}
+        <Link href="/confidentialite" className="underline">politique de confidentialité</Link>.
+      </p>
+
       <p className="text-sm text-muted">
         Déjà inscrit ?{" "}
         <Link href="/login" className="font-semibold text-brand underline">
