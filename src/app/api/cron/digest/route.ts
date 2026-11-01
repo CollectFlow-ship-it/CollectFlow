@@ -51,6 +51,15 @@ export async function GET(req: Request) {
 
   const today = todayParis();
 
+  // Adresse publique de la base lue (aucune clé) : permet de vérifier qu'il s'agit de la bonne.
+  let baseHost = "inconnue";
+  try {
+    baseHost = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").host;
+  } catch {
+    /* adresse absente ou invalide */
+  }
+  console.log(`[digest] base lue : ${baseHost}`);
+
   const { data: allCompanies, error } = await admin
     .from("companies")
     .select("id, name, digest_enabled, last_digest_on")
