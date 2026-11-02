@@ -75,7 +75,11 @@ export default async function BillingPage({
         <p className="text-sm font-semibold text-muted">Votre situation</p>
         <p className="font-display text-xl font-bold">{STATUS_LABEL[sub?.status ?? "none"] ?? sub?.status}</p>
         {sub?.status === "trialing" && sub.trial_end && (
-          <p className="text-sm text-muted">Fin de l’essai : {fmt(sub.trial_end)}. Le premier paiement a lieu à cette date.</p>
+          <p className="text-sm text-muted">
+            {sub.cancel_at_period_end
+              ? `Résiliation programmée : l’accès s’arrête le ${fmt(sub.trial_end)}, sans aucun paiement.`
+              : `Fin de l’essai : ${fmt(sub.trial_end)}. Le premier paiement a lieu à cette date.`}
+          </p>
         )}
         {sub?.status === "active" && sub.current_period_end && (
           <p className="text-sm text-muted">

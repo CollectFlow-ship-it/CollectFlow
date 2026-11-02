@@ -15,6 +15,7 @@ type StripeSubscription = {
   current_period_end?: number | null;
   items?: { data?: { current_period_end?: number }[] };
   cancel_at_period_end?: boolean;
+  cancel_at?: number | null;
   metadata?: { company_id?: string };
 };
 
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
     .select("event_created")
     .eq("company_id", companyId)
     .maybeSingle();
-  if (current && Number(current.event_created) >= event.created) {
+  if (current && Number(current.event_created) > event.created) {
     return NextResponse.json({ received: true, ignored: "ancien" });
   }
 
@@ -96,7 +97,8 @@ export async function POST(req: Request) {
       status: sub.status,
       trial_end: iso(sub.trial_end),
       current_period_end: iso(periodEnd),
-      cancel_at_period_end: Boolean(sub.cancel_at_period_end),
+      // Selon la version de l'API, une résiliation programmée est signalée par l'un ou l'autre champ.
+      cancel_at_period_end: Boolean(sub.cancel_at_period_end || sub.cancel_at),
       event_created: event.created,
       updated_at: new Date().toISOString(),
     },
